@@ -22,7 +22,7 @@ A minimal, zero-dependency browser-based circular audio visualizer built with **
 
 1. Clone or download this repository:
    ```bash
-   git clone 
+   git clone https://github.com/Zain-R98/Aura-Visualizer.git 
    ```
 2. Open `index.html` in any modern web browser (Google Chrome, Microsoft Edge, Brave, or Opera recommended for system audio capture support).
 
