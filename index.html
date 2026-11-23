@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aura Visualizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; user-select: none; }
+
+    body {
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.sky-light { background: radial-gradient(circle at 35% 30%, #aee3ed 0%, #6fc5d5 55%, #56b5c7 100%); }
+    body.lavender-light { background: radial-gradient(circle at 35% 30%, #ebd9fc 0%, #c89bf7 55%, #a86add 100%); }
+    body.mint-light { background: radial-gradient(circle at 35% 30%, #d1f7eb 0%, #76dfc4 55%, #4bbe9d 100%); }
+
+    body.sky-dark { background: radial-gradient(circle at 35% 30%, #152e3d 0%, #0b1a24 55%, #050d13 100%); }
+    body.lavender-dark { background: radial-gradient(circle at 35% 30%, #2a183b 0%, #180d24 55%, #0c0514 100%); }
+    body.mint-dark { background: radial-gradient(circle at 35% 30%, #12332a 0%, #0a1f19 55%, #04100c 100%); }
+
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+
+    .brand-badge {
+      background: rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 12px 28px rgba(0, 20, 35, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      color: #0d4251;
+      transition: all 0.4s ease;
+    }
+
+    body[class*="-dark"] .brand-badge {
+      background: rgba(15, 23, 42, 0.45);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      color: #f1f5f9;
+    }
+
+    .glass-dock {
+      background: rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 20px 40px rgba(0, 20, 35, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      transition: all 0.4s ease;
+    }
+
+    body[class*="-dark"] .glass-dock {
+      background: rgba(15, 23, 42, 0.45);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-btn, .glass-select {
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #0d4251;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    body[class*="-dark"] .glass-btn, body[class*="-dark"] .glass-select {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
+    }
+
+    .glass-btn:hover, .glass-select:hover {
+      background: rgba(255, 255, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    body[class*="-dark"] .glass-btn:hover, body[class*="-dark"] .glass-select:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .glass-btn.active {
+      background: #ffffff;
+      color: #083344;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    body[class*="-dark"] .glass-btn.active {
+      background: #38bdf8;
+      color: #030712;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+    }
+
+    .glass-select option {
+      background: #1e293b;
+      color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="sky-light flex items-center justify-center">
+
+  <div class="fixed top-6 left-6 z-20 pointer-events-none">
+    <div class="brand-badge px-4 py-2 rounded-full flex items-center gap-2.5">
+      <span class="w-2.5 h-2.5 rounded-full bg-current opacity-80"></span>
+      <span class="text-sm font-semibold tracking-tight">Aura Visualizer</span>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="fixed bottom-8 z-20 pointer-events-auto">
+    <div class="glass-dock px-3 py-2 rounded-full flex items-center gap-2">
+      <button id="sysBtn" class="glass-btn px-4 py-2 rounded-full text-xs font-semibold tracking-wide">System Audio</button>
+      <button id="micBtn" class="glass-btn px-4 py-2 rounded-full text-xs font-semibold tracking-wide">Mic</button>
+      <button id="demoBtn" class="glass-btn px-4 py-2 rounded-full text-xs font-semibold tracking-wide">Demo</button>
+
+      <div class="h-4 w-[1px] bg-white/30 dark:bg-white/10 mx-1"></div>
+
+      <select id="themeSelect" class="glass-select px-3 py-2 rounded-full text-xs font-semibold cursor-pointer">
+        <option value="sky">Sky Mist</option>
+        <option value="lavender">Lavender Dusk</option>
+        <option value="mint">Mint Breeze</option>
+      </select>
+
+      <button id="darkToggleBtn" class="glass-btn px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1">
+        <span id="modeIcon">🌙</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const sysBtn = document.getElementById('sysBtn');
+    const micBtn = document.getElementById('micBtn');
+    const demoBtn = document.getElementById('demoBtn');
+    const themeSelect = document.getElementById('themeSelect');
+    const darkToggleBtn = document.getElementById('darkToggleBtn');
+    const modeIcon = document.getElementById('modeIcon');
+
+    let currentTheme = 'sky';
+    let isDarkMode = false;
+
+    let audioCtx, analyser, sourceNode, dataArray;
+    let activeStream, synthInterval;
+    let mode = 'idle';
+    let requestToken = 0;
+
+    const TOTAL_BARS = 96;
+    const HALF_BARS = TOTAL_BARS / 2;
+    const smoothedBars = new Float32Array(HALF_BARS);
+
+    function updateBodyClass() {
+      const modeSuffix = isDarkMode ? 'dark' : 'light';
+      document.body.className = `${currentTheme}-${modeSuffix} flex items-center justify-center`;
+      modeIcon.textContent = isDarkMode ? '☀️' : '🌙';
+    }
+
+    themeSelect.onchange = (e) => {
+      currentTheme = e.target.value;
+      updateBodyClass();
+    };
+
+    darkToggleBtn.onclick = () => {
+      isDarkMode = !isDarkMode;
+      updateBodyClass();
+    };
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.82;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function clearSources() {
+      if (synthInterval) {
+        clearInterval(synthInterval);
+        synthInterval = null;
+      }
+      if (activeStream) {
+        activeStream.getTracks().forEach(t => {
+          t.onended = null;
+          t.stop();
+        });
+        activeStream = null;
+      }
+      if (sourceNode) {
+        try { sourceNode.disconnect(); } catch (_) {}
+        sourceNode = null;
+      }
+      sysBtn.classList.remove('active');
+      micBtn.classList.remove('active');
+      demoBtn.classList.remove('active');
+    }
+
+    function resetToIdle() {
+      requestToken++;
+      clearSources();
+      mode = 'idle';
+    }
+
+    sysBtn.onclick = async () => {
+      if (mode === 'system') return resetToIdle();
+      const token = ++requestToken;
+      initAudio();
+      clearSources();
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        if (token !== requestToken) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+        const audioTracks = stream.getAudioTracks();
+        if (!audioTracks.length) {
+          stream.getTracks().forEach(t => t.stop());
+          resetToIdle();
+          return;
+        }
+        stream.getVideoTracks().forEach(track => track.stop());
+        activeStream = stream;
+        sourceNode = audioCtx.createMediaStreamSource(new MediaStream(audioTracks));
+        sourceNode.connect(analyser);
+        mode = 'system';
+        sysBtn.classList.add('active');
+        audioTracks[0].onended = () => {
+          if (token === requestToken) resetToIdle();
+        };
+      } catch (e) {
+        if (token === requestToken) resetToIdle();
+      }
+    };
+
+    micBtn.onclick = async () => {
+      if (mode === 'mic') return resetToIdle();
+      const token = ++requestToken;
+      initAudio();
+      clearSources();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (token !== requestToken) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+        activeStream = stream;
+        sourceNode = audioCtx.createMediaStreamSource(stream);
+        sourceNode.connect(analyser);
+        mode = 'mic';
+        micBtn.classList.add('active');
+        stream.getAudioTracks().forEach(track => {
+          track.onended = () => {
+            if (token === requestToken) resetToIdle();
+          };
+        });
+      } catch (e) {
+        if (token === requestToken) resetToIdle();
+      }
+    };
+
+    demoBtn.onclick = () => {
+      if (mode === 'demo') return resetToIdle();
+      requestToken++;
+      initAudio();
+      clearSources();
+      mode = 'demo';
+      demoBtn.classList.add('active');
+
+      let step = 0;
+      synthInterval = setInterval(() => {
+        if (!audioCtx || audioCtx.state !== 'running' || mode !== 'demo') return;
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(110, now);
+        osc.frequency.exponentialRampToValueAtTime(32, now + 0.12);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+        osc.connect(gain);
+        gain.connect(analyser);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+
+        if (step % 2 === 0) {
+          const pOsc = audioCtx.createOscillator();
+          const pGain = audioCtx.createGain();
+          pOsc.type = 'triangle';
+          pOsc.frequency.setValueAtTime(220 + (step % 5) * 65, now);
+          pGain.gain.setValueAtTime(0.06, now);
+          pGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          pOsc.connect(pGain);
+          pGain.connect(analyser);
+          pGain.connect(audioCtx.destination);
+          pOsc.start(now);
+          pOsc.stop(now + 0.23);
+        }
+        step++;
+      }, 240);
+    };
+
+    window.addEventListener('beforeunload', () => {
+      clearSources();
+      if (audioCtx) audioCtx.close().catch(() => {});
+    });
+
+    function render(t = 0) {
+      requestAnimationFrame(render);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = Math.min(w, h) * 0.18;
+      const maxBarLen = Math.min(w, h) * 0.13;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const hasLiveAnalyser = Boolean(analyser && dataArray && mode !== 'idle');
+      if (hasLiveAnalyser) {
+        analyser.getByteFrequencyData(dataArray);
+      }
+
+      const minBin = 2;
+      const maxBin = Math.max(minBin + 1, Math.floor((dataArray ? dataArray.length : 256) * 0.55));
+      const denom = Math.max(1, HALF_BARS - 1);
+
+      for (let k = 0; k < HALF_BARS; k++) {
+        let target = 0;
+        if (hasLiveAnalyser) {
+          const normK = k / denom;
+          const bin = Math.min(dataArray.length - 1, Math.floor(minBin * Math.pow(maxBin / minBin, normK)));
+          const rawVal = dataArray[bin] || 0;
+          if (rawVal > 14) {
+            const normVal = (rawVal - 14) / (255 - 14);
+            target = Math.pow(normVal, 1.85) * maxBarLen * 0.65 + 3;
+          }
+        } else {
+          target = (Math.sin(t * 0.0015 + k * 0.12) * 0.5 + 0.5) * 8 + 1.5;
+        }
+        smoothedBars[k] += (target - smoothedBars[k]) * 0.22;
+      }
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      const startAngle = -Math.PI / 2 + 0.18;
+      const endAngle = 3 * Math.PI / 2 - 0.18;
+      const totalAngleSpan = endAngle - startAngle;
+      const barSpan = Math.max(1, TOTAL_BARS - 1);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+
+      for (let i = 0; i < TOTAL_BARS; i++) {
+        const k = i < HALF_BARS ? (HALF_BARS - 1 - i) : (i - HALF_BARS);
+        const barH = smoothedBars[k];
+
+        const angle = startAngle + (i / barSpan) * totalAngleSpan;
+        const x1 = cx + Math.cos(angle) * (radius + 4);
+        const y1 = cy + Math.sin(angle) * (radius + 4);
+        const x2 = cx + Math.cos(angle) * (radius + 4 + barH);
+        const y2 = cy + Math.sin(angle) * (radius + 4 + barH);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+    }
+
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>
