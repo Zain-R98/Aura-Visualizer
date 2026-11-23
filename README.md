@@ -5,7 +5,7 @@ A minimal, zero-dependency browser-based circular audio visualizer built with **
 ![Aura Visualizer](https://img.shields.io/badge/Status-Active-brightgreen) ![License](https://img.shields.io/badge/License-MIT-blue) ![Dependencies](https://img.shields.io/badge/Dependencies-Zero-success)
 
 ## ✨ Features
-- **360° Spectrum:** Uses logarithmic frequency bin mapping and $O(1)$ bilateral mirroring to create balanced, aesthetically pleasing circular frequency rays.
+- **360° Spectrum:** Uses logarithmic frequency bin mapping and O(1) bilateral mirroring to create balanced, aesthetically pleasing circular frequency rays.
 
 - **Multiple Audio Sources:**
   - **System Audio:** Captures desktop or browser-tab audio (YouTube, Spotify Web, SoundCloud) using the Media Capture / Screen Capture API.
